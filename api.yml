@@ -1,0 +1,343 @@
+swagger: '2.0'
+info:
+  title: Bone Scan - API
+  version: 1.0.0
+  description: |-
+    ##  Born Scan ~AIで接骨院の価値を視覚化~
+externalDocs:
+  description: ER図（マーメイド）
+  url: https://mermaid.live/edit#pako:eNqdVt1q2zAUfhUhKGysuRn0Jnfdlv2lpCXNRmEZRouVRKstB1mmDYlh7V1ZL7uLwR5gLzH2MBnda0yyHVuyfZQy38Q-3_n0nT8fZ4UnkU9xF1PxgpGZIOGYI3UlMRVove50ohVaRDHlVKIuGuP7my_3P242V98311_HOPfd4ra7J-giEjnrz6_ff-9-bq6-ba5vDWKLiMmqaxmkVX6vL-ajN4NR71VviE76lZmTkKL3h8Pnrw-Hj54eHDxGg-MRGrw7Oqp8aEhY4HJK7QR3q26z8Ikk6O3p8eBZiywLyYx6iQjQqHc2anHQKXqGgiuobcF2xyaZDHaWxKfxRLCFZBH_v-jM0Fwp5Dd7e1Y_1aO-nijih5P-R8uoG2oZsu6VlrS8q3XLdabZLgsoW2RZi8xhzVozXNJZNyyLUXqnql1hM5gxV7_Gi2wcoEMqHrP8uNRjosfDsMZSMD4rKt20FwUvgLS8ayb_UKWiCAYg6aW0K1E7azt9L_sNyBg7A23E-aAAP8fqBbDHox6lMSO7Y2xGkUadznqdN0dvO73hai7wajScdyzRfHFu37diVqZBRCTiytu7hIBlCxDQqfTosp1Vgm1MwWZzmFqhsCoRDlUFOlQBaoWCqvE8SgKfOqRLD1jfeUjNBc4_-BRdOCqQwY4agHQTB9UvBIslrJ7DsDpMN3FQfc4WsLYGYWWIWqGg6jmnjkHPUFgXJBswqEz4eeCQzmFYG6abuOLjfRxSoba6r_4AZt-sMZZzqrY_1qvDp1OSBFJvkFS5kkRGp0s-wd0pCWK6j5OFWoy0-NoU1vQfMGYPEA
+
+tags:
+  - name: user
+    description: 施術を受けるユーザデータ
+  - name: posenet
+    description: tencerflowのposenetのデータおよび画像データ
+  - name: report
+    description: posenetのデータを参考にして作成されたレポートデータ
+
+paths:
+  /users:
+    get:
+      tags:
+        - user
+      summary: Get all users
+      description: Retrieve a list of all users
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: A list of users
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+    post:
+      tags:
+        - user
+      summary: Create a new user
+      description: Add a new user to the database
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: User object to be added
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '201':
+          description: The newly created user
+          schema:
+            $ref: '#/definitions/User'
+  /users/{id}:
+    get:
+      tags:
+        - user
+      summary: Get a user by ID
+      description: Retrieve a user by ID
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          description: ID of the user to retrieve
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: The requested user
+          schema:
+            $ref: '#/definitions/User'
+        '404':
+          description: User not found
+    put:
+      tags:
+        - user
+      summary: Update a user by ID
+      description: Update an existing user in the database
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          description: ID of the user to update
+          required: true
+          type: integer
+        - in: body
+          name: user
+          description: Updated user object
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '200':
+          description: The updated user
+          schema:
+            $ref: '#/definitions/User'
+        '404':
+          description: User not found
+    delete:
+      tags:
+        - user
+      summary: Delete a user by ID
+      description: Delete a user from the database
+      parameters:
+        - in: path
+          name: id
+          description: ID of the user to delete
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          description: User not found
+
+  /posenet:
+    get:
+      summary: Get all posenet data
+      description: Returns a list of all posenet data.
+      tags:
+        - posenet
+      responses:
+        '200':
+          description: A list of posenet data.
+          schema:
+            $ref: '#/definitions/Posenet'
+    post:
+      summary: Create a new posenet data
+      description: Creates a new posenet data.
+      tags:
+        - posenet
+      parameters:
+        - name: posenet
+          in: body
+          description: The posenet data to create.
+          required: true
+          schema:
+            $ref: '#/definitions/Posenet'
+      responses:
+        '201':
+          description: The created posenet data.
+          schema:
+            $ref: '#/definitions/Posenet'
+        '400':
+          description: Invalid input data.
+          schema:
+            $ref: '#/definitions/Posenet'
+  /posenet/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: ID of the posenet to retrieve
+        required: true
+        type: integer
+    get:
+      summary: Get a posenet data by ID
+      description: Returns a single posenet data.
+      tags:
+        - posenet
+      responses:
+        '200':
+          description: The requested posenet data.
+          schema:
+            $ref: '#/definitions/Posenet'
+        '404':
+          description: posenet data not found.
+          schema:
+            $ref: '#/definitions/Posenet'
+    put:
+      summary: Update a posenet data by ID
+      description: Updates an existing posenet data.
+      tags:
+        - posenet
+      parameters:
+        - name: posenet
+          in: body
+          description: The updated posenet data.
+          required: true
+          schema:
+            $ref: '#/definitions/Posenet'
+      responses:
+        '200':
+          description: The updated posenet data.
+          schema:
+            $ref: '#/definitions/Posenet'
+        '404':
+          description: posenet data not found.
+          schema:
+            $ref: '#/definitions/Posenet'
+    delete:
+      summary: Delete a Posenet entry by ID
+      tags:
+        - posenet
+      parameters:
+        - in: path
+          name: id
+          description: ID of the Posenet entry to delete
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: Posenet entry successfully deleted
+        '404':
+          description: Posenet entry not found
+        '500':
+          description: Internal server error
+  /reports:
+    get:
+      summary: Get all reports
+      tags:
+        - report
+      description: Retrieve a list of all reports.
+      responses:
+        200:
+          description: A list of reports.
+    post:
+      tags:
+        - report
+      summary: Create a new report
+      description: Create a new report and return the new report's ID.
+      parameters:
+        - name: repoet
+          in: body
+          description: The report data to create.
+          required: true
+          schema:
+            $ref: '#/definitions/Report'
+      responses:
+        '201':
+          description: The created report data.
+          schema:
+            $ref: '#/definitions/Report'
+        '400':
+          description: Invalid input data.
+          schema:
+            $ref: '#/definitions/Report'
+  /reports/{id}:
+    get:
+      tags:
+        - report
+      summary: Get a report by ID
+      description: Retrieve a report by its ID.
+      parameters:
+        - in: path
+          name: id
+          description: ID of the report to retrieve.
+          required: true
+          type: integer
+      responses:
+        200:
+          description: The report object.
+        404:
+          description: Report not found.
+    put:
+      summary: Update a report
+      tags:
+        - report
+      description: Update an existing report.
+      parameters:
+        - in: path
+          name: id
+          description: ID of the report to update.
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Report updated successfully.
+        404:
+          description: Report not found.
+    delete:
+      summary: Delete a report
+      tags:
+        - report
+      description: Delete an existing report.
+      parameters:
+        - in: path
+          name: id
+          description: ID of the report to delete.
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Report deleted successfully.
+        404:
+          description: Report not found.
+
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      email:
+        type: string
+    required:
+      - id
+      - name
+      - email
+  Posenet:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      posenet_data:
+        type: object
+      image_url:
+        type: string
+      user_id:
+        type: integer
+        format: int64
+    required:
+      - id
+      - posenet_data
+      - image_url
+      - user_id
+  Report:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      title:
+        type: string
+      description:
+        type: string
+      user_id:
+        type: integer
+        format: int64
+      posenet_id:
+        type: integer
+        format: int64
+    required:
+      - id
+      - title
+      - posenet_id
+      - user_id

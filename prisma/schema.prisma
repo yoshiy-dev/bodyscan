@@ -1,0 +1,153 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// generator erd {
+//     provider = "prisma-erd-generator"
+//     output   = "erd.png"
+// }
+
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+    provider = "postgresql"
+    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+    // Further reading:
+    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+    url      = env("DATABASE_URL")
+}
+
+// Necessary for Next auth
+model Account {
+    id                String  @id @default(cuid())
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String? // @db.Text
+    access_token      String? // @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? // @db.Text
+    session_state     String?
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+    USER
+    ADMIN
+}
+
+enum Sex {
+    MALE
+    FEMALE
+}
+
+model User {
+    id            String        @id @default(cuid())
+    name          String?
+    email         String?       @unique
+    emailVerified DateTime?
+    image         String?
+    firstName     String?
+    lastName      String?
+    address       String?
+    zipCode       String?
+    barthDate     DateTime?
+    age           Int?
+    sex           Sex?
+    blood         String?
+    notes         String?
+    symptoms      String?
+    lineId        String        @unique @default(cuid())
+    lineName      String?
+    painLocation  String[]
+    patientNumber Int           @default(autoincrement())
+    visitingDate  DateTime?
+    phoneNumber   String?
+    role          Role          @default(USER)
+    accounts      Account[]
+    sessions      Session[]
+    poseImages    PoseImage[]
+    patientFiles  PatientFile[]
+    shootData     ShootData[]
+    isDeleted     Boolean       @default(false)
+}
+
+model VerificationToken {
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
+
+model PatientFile {
+    id                    Int                    @id @default(autoincrement())
+    reportImage           String?
+    reportTitle           String?
+    reportComment         String? // GPT自動生成
+    shootName             String?
+    comment               String?
+    userId                String
+    user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    patientFileShootDatas PatientFileShootData[]
+    createdAt             DateTime               @default(now())
+    updatedAt             DateTime               @updatedAt
+}
+
+model ShootData {
+    id                    Int                    @id @default(autoincrement())
+    shootName             String?
+    userId                String
+    treatmentStatus       Boolean                @default(false)
+    user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    patientFileShootDatas PatientFileShootData[]
+    poseImages            PoseImage[]
+    createdAt             DateTime               @default(now())
+    updatedAt             DateTime               @updatedAt
+}
+
+model PatientFileShootData {
+    patientFileId Int
+    shootDataId   Int
+    patientFile   PatientFile @relation(fields: [patientFileId], references: [id], onDelete: Cascade)
+    shootData     ShootData   @relation(fields: [shootDataId], references: [id], onDelete: Cascade)
+
+    @@id([patientFileId, shootDataId])
+}
+
+model PoseImage {
+    id          Int        @id @default(autoincrement())
+    score       Float
+    image       String
+    poseStatus  String?
+    keypoints   Keypoint[]
+    userId      String
+    user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    shootDataId Int?
+    ShootData   ShootData? @relation(fields: [shootDataId], references: [id], onDelete: Cascade)
+}
+
+model Keypoint {
+    id        Int       @id @default(autoincrement())
+    score     Int
+    part      String
+    positionX Float
+    positionY Float
+    posenetId Int
+    poseImage PoseImage @relation(fields: [posenetId], references: [id], onDelete: Cascade)
+}

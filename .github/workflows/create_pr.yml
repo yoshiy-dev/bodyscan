@@ -1,0 +1,59 @@
+name: Create Pull Request
+
+# トリガー条件を指定します。pushイベントの場合、branchesキーで対象のブランチを指定できます。
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  create_pull_request:
+    runs-on: ubuntu-latest
+
+    steps:
+      # リポジトリの最新コードをチェックアウトします。
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Check if pr exists
+        id: check_pr
+        run: |
+          pr_title=${{ (github.ref == 'refs/heads/stage' && 'Stage') || 'Develop' }}
+          base_branch=${{ (github.ref == 'refs/heads/stage' && 'main') || 'stage' }}
+          echo "count=$(gh pr list -S ${pr_title}' in:title' -B $base_branch | wc -l)" >> $GITHUB_ENV
+          echo "pr_title=$pr_title" >> $GITHUB_ENV
+          echo "base_branch=$base_branch" >> $GITHUB_ENV
+          BRANCH_NAME=$(echo "${{ github.ref }}" | awk -F '/' '{print $NF}')
+          BRANCH_NUMBER=$(echo "${BRANCH_NAME}" | sed 's/[^0-9]*//g')
+          echo "BRANCH_NUMBER=${BRANCH_NUMBER}" >> $GITHUB_ENV
+      - name: Create Pull Request on GitHub
+        if: ${{ env.count == '0' }}
+        uses: peter-evans/create-pull-request@v4
+        with:
+          base: 'main' #プルリクエストのベースブランチ名
+          commit-message: 'New branch created' # GitHub Actionsのマジックキーワードで、新しく作成されたブランチの名前を参照します。
+          branch: ${{ github.ref }} # プルリクエストのタイトルを指定します。
+          title: ${{ github.event.head_commit.message }} # プルリクエストの説明文を指定します。
+          body: |
+            <!-- あくまでテンプレートなので必ずしもすべての項目を埋めなくてよい -->
+            ${{ github.ref }} is created.
+
+            ## issue 番号
+
+            close #${{ env.BRANCH_NUMBER }}
+
+            ## 概要
+
+            <!-- 変更の目的 -->
+
+            ## 変更内容
+
+            <!-- ビューの変更がある場合はスクショによる比較などがあるとわかりやすい -->
+
+            ## 動作確認内容
+
+            - [ ] dev 動作確認
+            - [ ] start 動作確認
+
+            ## 補足
+
+            <!-- レビューをする際に見てほしい点、ローカル環境で試す際の注意点、など -->
